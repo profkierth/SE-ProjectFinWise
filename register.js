@@ -1,11 +1,12 @@
 function register() {
     let name = document.getElementById("fullname").value;
     let email = document.getElementById("email").value;
+    let birthdate = document.getElementById("birthdate").value;
     let pass = document.getElementById("password").value;
     let confirm = document.getElementById("confirm_password").value;
 
-    if (!name || !email || !pass || !confirm) {
-        alert("Please fill in all fields.");
+    if (!name || !email || !birthdate || !pass || !confirm) {
+        alert("Please fill in all fields, including birthdate.");
         return;
     }
 
@@ -16,17 +17,4 @@ function register() {
 
     alert("Account created successfully!");
     window.location.href = "login.html";
-}
-
-function login() {
-    let email = document.getElementById("email").value;
-    let pass = document.getElementById("password").value;
-
-    if (!email || !pass) {
-        alert("Please fill in all fields.");
-        return;
-    }
-
-    alert("Login successful!");
-    window.location.href = "dashboard.html";
 }
