@@ -1,4 +1,25 @@
-<?php session_start(); $error=''; if($_SERVER['REQUEST_METHOD']=='POST'){ $email=$_POST['email']; $pass=$_POST['password']; if(!empty($email)&&!empty($pass)){ $_SESSION['user']=$email; header('Location: dashboard.php'); exit;} else{$error='Invalid login';}} ?>
+<?php 
+session_start(); 
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+    $email = $_POST['email'];
+    $pass  = $_POST['password'];
+
+    if (!empty($email) && !empty($pass)) {
+
+        // Normally you would check database here
+        $_SESSION['user'] = $email;
+
+        header('Location: dashboard.php');
+        exit;
+
+    } else {
+        $error = 'Invalid login';
+    }
+}
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,7 +32,13 @@
     <div class="login-container">
         <h2 class="login-title">Welcome to <span>FinWise</span> 👋</h2>
 
-        <form action="login_process.php" method="POST" class="login-box">
+        <!-- SHOW ERROR MESSAGE -->
+        <?php if($error != ''): ?>
+            <p class="error-msg"><?php echo $error; ?></p>
+        <?php endif; ?>
+
+        <!-- FIXED: FORM NOW POSTS TO THIS SAME FILE -->
+        <form action="" method="POST" class="login-box">
 
             <input type="email" name="email" placeholder="Email" required>
 
@@ -29,4 +56,3 @@
 
 </body>
 </html>
-
