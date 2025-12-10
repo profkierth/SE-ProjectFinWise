@@ -1,5 +1,7 @@
 <?php
 session_start();
+require 'db.php';
+
 $error='';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -12,26 +14,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'];
     $confirm = $_POST['confirm'];
 
-    if ($password !== $confirm) {
-        $error = "Passwords do not match!";
-    } else if (!empty($fullname) && !empty($birthdate) && !empty($gender) && !empty($address) && !empty($email) && !empty($password)) {
+    // Check if email already exists
+$stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
 
-        // Store user in session (demo)
-        $_SESSION['user'] = $email;
-        $_SESSION['fullname'] = $fullname;
-        $_SESSION['birthdate'] = $birthdate;
-        $_SESSION['gender'] = $gender;
-        $_SESSION['address'] = $address;
-        $_SESSION['password'] = $password;
-        // default avatar
-        $_SESSION['avatar'] = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+if ($result->num_rows > 0) {
+    $error = "Email already registered. Please login or use another email.";
+} else {
+    // Hash the password
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-        header('Location: dashboard.php');
+    // Insert new user
+    $stmt = $conn->prepare("INSERT INTO users (fullname, birthdate, gender, address, email, password) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssssss", $fullname, $birthdate, $gender, $address, $email, $hashedPassword);
+
+    if ($stmt->execute()) {
+        header("Location: index.php?registered=1");
         exit;
-
     } else {
-        $error = "All fields are required.";
+        $error = "Registration failed: " . $conn->error;
     }
+}
+
 }
 ?>
 <!DOCTYPE html>
