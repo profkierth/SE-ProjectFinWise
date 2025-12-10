@@ -1,138 +1,104 @@
 <?php
-// --- PHP PROCESSING (must be at the top) ---
-$errors = [];
-$success_message = '';
+session_start();
+$error='';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    if (empty($_POST['full_name'])) {
-        $errors['full_name'] = "Full Name is required.";
-    }
-    if (empty($_POST['birthdate'])) {
-        $errors['birthdate'] = "Birthdate is required.";
-    }
-    if (empty($_POST['gender'])) {
-        $errors['gender'] = "Gender is required.";
-    }
-    if (empty($_POST['email'])) {
-        $errors['email'] = "Email is required.";
-    }
-    if (empty($_POST['password'])) {
-        $errors['password'] = "Password is required.";
-    }
-    if (empty($_POST['confirm_password'])) {
-        $errors['confirm_password'] = "Please confirm your password.";
-    } elseif ($_POST['password'] !== $_POST['confirm_password']) {
-        $errors['confirm_password'] = "Passwords do not match.";
-    }
+    $fullname = trim($_POST['fullname']);
+    $birthdate = $_POST['birthdate'];
+    $gender = $_POST['gender'] ?? '';
+    $address = trim($_POST['address']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    $confirm = $_POST['confirm'];
 
-    if (empty($errors)) {
-        $success_message = "Registration successful! You can now log in.";
-        $_POST = [];
+    if ($password !== $confirm) {
+        $error = "Passwords do not match!";
+    } else if (!empty($fullname) && !empty($birthdate) && !empty($gender) && !empty($address) && !empty($email) && !empty($password)) {
+
+        // Store user in session (demo)
+        $_SESSION['user'] = $email;
+        $_SESSION['fullname'] = $fullname;
+        $_SESSION['birthdate'] = $birthdate;
+        $_SESSION['gender'] = $gender;
+        $_SESSION['address'] = $address;
+        $_SESSION['password'] = $password;
+        // default avatar
+        $_SESSION['avatar'] = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+
+        header('Location: dashboard.php');
+        exit;
+
+    } else {
+        $error = "All fields are required.";
     }
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Create Account</title>
-    <link rel="stylesheet" href="style.css"> <!-- FIXED: CSS link -->
+    <title>Register - FinWise</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body class="gradient">
 
-    <div class="login-container"> <!-- Reuse login style for centering -->
-        
-        <h2 class="login-title">Create Your <span>FinWise</span> Account ✨</h2>
+<div class="card">
+    <h2><i class="fa-solid fa-user-plus"></i> Create Account</h2>
 
-        <?php if (!empty($success_message)): ?>
-            <div class="success" style="
-                margin-bottom: 20px;
-                padding: 12px;
-                border-radius: 10px;
-                background: rgba(0,255,100,0.25);
-                color: white;
-                text-align: center;">
-                <?= $success_message ?>
-            </div>
-        <?php endif; ?>
+    <form method="POST">
 
-        <form method="POST" class="login-box"> <!-- Reuse login-box style -->
+        <div class="input-icon">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" name="fullname" placeholder="Full Name" required>
+        </div>
 
-            <div class="form-group">
-                <label class="label">Full Name</label>
-                <input type="text" name="full_name"
-                       value="<?= htmlspecialchars($_POST['full_name'] ?? '') ?>">
-                <?php if (!empty($errors['full_name'])): ?>
-                    <div class="error-text"><?= $errors['full_name'] ?></div>
-                <?php endif; ?>
-            </div>
+        <label class="label">Birthdate</label>
+        <div class="input-icon">
+            <i class="fa-solid fa-calendar"></i>
+            <input type="date" name="birthdate" required>
+        </div>
 
-            <div class="form-group">
-                <label class="label">Birthdate</label>
-                <input type="date" name="birthdate"
-                       value="<?= htmlspecialchars($_POST['birthdate'] ?? '') ?>">
-                <?php if (!empty($errors['birthdate'])): ?>
-                    <div class="error-text"><?= $errors['birthdate'] ?></div>
-                <?php endif; ?>
-            </div>
+        <label class="label">Gender</label>
+        <div class="input-icon">
+            <i class="fa-solid fa-venus-mars"></i>
+            <select name="gender" required>
+                <option value="" disabled selected>Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
 
-            <div class="form-group">
-                <label class="label">Gender</label>
-                <select name="gender">
-                    <option value="">Select Gender</option>
-                    <option value="male"   <?= (($_POST['gender'] ?? '') == 'male') ? 'selected' : '' ?>>Male</option>
-                    <option value="female" <?= (($_POST['gender'] ?? '') == 'female') ? 'selected' : '' ?>>Female</option>
-                    <option value="other"  <?= (($_POST['gender'] ?? '') == 'other') ? 'selected' : '' ?>>Other</option>
-                </select>
-                <?php if (!empty($errors['gender'])): ?>
-                    <div class="error-text"><?= $errors['gender'] ?></div>
-                <?php endif; ?>
-            </div>
+        <div class="input-icon">
+            <i class="fa-solid fa-location-dot"></i>
+            <input type="text" name="address" placeholder="Address" required>
+        </div>
 
-            <div class="form-group">
-                <label class="label">Address</label>
-                <input type="text" name="address"
-                       value="<?= htmlspecialchars($_POST['address'] ?? '') ?>">
-            </div>
+        <div class="input-icon">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" name="email" placeholder="Email Address" required>
+        </div>
 
-            <div class="form-group">
-                <label class="label">Email Address</label>
-                <input type="email" name="email"
-                       value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
-                <?php if (!empty($errors['email'])): ?>
-                    <div class="error-text"><?= $errors['email'] ?></div>
-                <?php endif; ?>
-            </div>
+        <div class="input-icon">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" name="password" placeholder="Password" required>
+        </div>
 
-            <div class="form-group">
-                <label class="label">Password</label>
-                <input type="password" name="password">
-                <?php if (!empty($errors['password'])): ?>
-                    <div class="error-text"><?= $errors['password'] ?></div>
-                <?php endif; ?>
-            </div>
+        <div class="input-icon">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" name="confirm" placeholder="Confirm Password" required>
+        </div>
 
-            <div class="form-group">
-                <label class="label">Confirm Password</label>
-                <input type="password" name="confirm_password">
-                <?php if (!empty($errors['confirm_password'])): ?>
-                    <div class="error-text"><?= $errors['confirm_password'] ?></div>
-                <?php endif; ?>
-            </div>
+        <button type="submit"><i class="fa-solid fa-arrow-right"></i> Register</button>
 
-            <button type="submit" class="login-btn">Create Account</button>
+        <p class="error-text"><?php echo $error; ?></p>
 
-            <p class="create" style="margin-top: 10px;">
-                Already have an account?
-                <a href="index.php">Login here</a>
-            </p>
+        <a href="index.php" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Login</a>
 
-        </form>
-
-    </div>
+    </form>
+</div>
 
 </body>
 </html>
-
