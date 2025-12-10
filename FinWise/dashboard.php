@@ -1,6 +1,9 @@
 <?php
 session_start();
-if(!isset($_SESSION['user'])){ header('Location:index.php'); exit; }
+if(!isset($_SESSION['user_id'])){ 
+    header('Location: index.php'); 
+    exit; 
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -20,7 +23,7 @@ if(!isset($_SESSION['user'])){ header('Location:index.php'); exit; }
 </div>
 
 <div class="dashboard-container">
-    <h2 class="dash-title">Welcome, <?php echo htmlspecialchars($_SESSION['fullname'] ?? $_SESSION['user']); ?> 👋</h2>
+    <h2 class="dash-title">Welcome, <?php echo htmlspecialchars($_SESSION['fullname']); ?> 👋</h2>
 
     <div class="summary-grid">
 
