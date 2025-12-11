@@ -1,17 +1,20 @@
 <?php
 session_start();
-if(!isset($_SESSION['user_id'])) {
+if(!isset($_SESSION['user_id'])){
     header('Location: index.php');
     exit;
 }
 
 include 'db.php';
 
+// TOTAL INCOME & EXPENSE
 $total_income = $conn->query("SELECT SUM(amount) AS total FROM transactions1 WHERE type='income'")->fetch_assoc()['total'] ?? 0;
 $total_expense = $conn->query("SELECT SUM(amount) AS total FROM transactions1 WHERE type='expense'")->fetch_assoc()['total'] ?? 0;
+$balance = $total_income - $total_expense;
 
+// EXPENSES BY CATEGORY
 $cat_result = $conn->query("
-    SELECT c.name, SUM(t.amount) as total
+    SELECT c.name, SUM(t.amount) AS total
     FROM transactions1 t
     JOIN categories c ON t.category_id = c.id
     WHERE t.type='expense'
@@ -20,13 +23,14 @@ $cat_result = $conn->query("
 
 $categories = [];
 $cat_totals = [];
-while ($row = $cat_result->fetch_assoc()) {
+while($row = $cat_result->fetch_assoc()){
     $categories[] = $row['name'];
     $cat_totals[] = $row['total'];
 }
 
+// MONTHLY INCOME/EXPENSE
 $month_result = $conn->query("
-    SELECT month, 
+    SELECT month,
         SUM(CASE WHEN type='income' THEN amount ELSE 0 END) AS income,
         SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) AS expense
     FROM transactions1
@@ -63,27 +67,31 @@ while($row = $month_result->fetch_assoc()){
 <div class="container">
     <h1>Financial Analysis</h1>
 
+    <!-- Summary -->
     <div class="card">
         <h2>Summary</h2>
         <p>Total Income: <strong>₱<?= number_format($total_income, 2) ?></strong></p>
         <p>Total Expense: <strong>₱<?= number_format($total_expense, 2) ?></strong></p>
-        <p>Balance: <strong>₱<?= number_format($total_income - $total_expense, 2) ?></strong></p>
+        <p>Balance: <strong>₱<?= number_format($balance, 2) ?></strong></p>
     </div>
 
+    <!-- Expenses by Category -->
     <div class="card">
         <h2>Expenses by Category</h2>
-        <canvas id="categoryChart"></canvas>
+        <canvas id="categoryChart" style="width:100%; max-width:600px; height:300px;"></canvas>
     </div>
 
+    <!-- Monthly Trend -->
     <div class="card">
         <h2>Monthly Income/Expense</h2>
-        <canvas id="monthlyChart"></canvas>
+        <canvas id="monthlyChart" style="width:100%; max-width:700px; height:350px;"></canvas>
     </div>
 </div>
 
 <script>
-    const ctx1 = document.getElementById('categoryChart').getContext('2d');
-    new Chart(ctx1, {
+    // Pie Chart: Expenses by Category
+    const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+    new Chart(ctxCategory, {
         type: 'pie',
         data: {
             labels: <?= json_encode($categories) ?>,
@@ -91,19 +99,19 @@ while($row = $month_result->fetch_assoc()){
                 label: 'Expenses by Category',
                 data: <?= json_encode($cat_totals) ?>,
                 backgroundColor: [
-                    'rgba(255, 99, 132, 0.6)',
-                    'rgba(54, 162, 235, 0.6)',
-                    'rgba(255, 206, 86, 0.6)',
-                    'rgba(75, 192, 192, 0.6)',
-                    'rgba(153, 102, 255, 0.6)',
-                    'rgba(255, 159, 64, 0.6)'
+                    '#e74c3c','#3498db','#2ecc71','#f1c40f','#9b59b6','#1abc9c'
                 ]
             }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } }
         }
     });
 
-    const ctx2 = document.getElementById('monthlyChart').getContext('2d');
-    new Chart(ctx2, {
+    // Bar Chart: Monthly Income vs Expense
+    const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(ctxMonthly, {
         type: 'bar',
         data: {
             labels: <?= json_encode($months) ?>,
@@ -111,16 +119,20 @@ while($row = $month_result->fetch_assoc()){
                 {
                     label: 'Income',
                     data: <?= json_encode($monthly_income) ?>,
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                    backgroundColor: '#2ecc71'
                 },
                 {
                     label: 'Expense',
                     data: <?= json_encode($monthly_expense) ?>,
-                    backgroundColor: 'rgba(255, 99, 132, 0.6)'
+                    backgroundColor: '#e74c3c'
                 }
             ]
         },
-        options: { responsive: true }
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'top' } },
+            scales: { y: { beginAtZero: true } }
+        }
     });
 </script>
 
