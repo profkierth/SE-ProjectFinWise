@@ -142,6 +142,40 @@ a{
 .btn-transaction:hover {
     background-color: #2980b9;
 }
+/* FIX: TOP HEADER LAYOUT */
+.top-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 25px 40px;
+    align-items: center;
+}
+
+/* FIX: NAV alignment */
+.nav a {
+    margin-left: 20px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #fff;
+}
+
+/* FIX: Dashboard container spacing */
+.dashboard-container {
+    padding: 20px 40px;
+}
+
+/* FIX: Summary grid spacing */
+.summary-grid {
+    margin-top: 25px;
+    padding-bottom: 10px;
+}
+
+/* FIX: Chart containers */
+canvas {
+    width: 100% !important;
+    height: 280px !important;
+}
+
 
 
 /* Forms with icons */
