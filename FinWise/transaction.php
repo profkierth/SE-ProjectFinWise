@@ -8,8 +8,6 @@ if (!isset($_SESSION['user'])) {
     exit; 
 }
 
-
-
 if (!isset($_SESSION['transactions'])) {
     $_SESSION['transactions'] = [
         ["type" => "income", "label" => "Salary", "amount" => 8000],
