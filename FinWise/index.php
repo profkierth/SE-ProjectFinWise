@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = trim($_POST['password']);
 
     if (!empty($email) && !empty($password)) {
-        // Prepare statement to avoid SQL injection
+        
         $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -17,14 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
 
-            // Verify password hash
+            
             if (password_verify($password, $user['password'])) {
-                // Set session variables
-                $_SESSION['user_id'] = $user['id'];
+                
+                $_SESSION['user'] = $user['id'];
                 $_SESSION['fullname'] = $user['fullname'];
                 $_SESSION['avatar'] = $user['avatar'];
 
-                // Redirect to dashboard
+                
                 header("Location: dashboard.php");
                 exit;
             } else {
