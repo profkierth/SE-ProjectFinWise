@@ -1,140 +1,200 @@
 <?php
 session_start();
-if(!isset($_SESSION['user_id'])){
-    header('Location: index.php');
+if(!isset($_SESSION['user'])){
+    header("Location: index.php");
     exit;
 }
-
-include 'db.php';
-
-// TOTAL INCOME & EXPENSE
-$total_income = $conn->query("SELECT SUM(amount) AS total FROM transactions1 WHERE type='income'")->fetch_assoc()['total'] ?? 0;
-$total_expense = $conn->query("SELECT SUM(amount) AS total FROM transactions1 WHERE type='expense'")->fetch_assoc()['total'] ?? 0;
-$balance = $total_income - $total_expense;
-
-// EXPENSES BY CATEGORY
-$cat_result = $conn->query("
-    SELECT c.name, SUM(t.amount) AS total
-    FROM transactions1 t
-    JOIN categories c ON t.category_id = c.id
-    WHERE t.type='expense'
-    GROUP BY c.name
-");
-
-$categories = [];
-$cat_totals = [];
-while($row = $cat_result->fetch_assoc()){
-    $categories[] = $row['name'];
-    $cat_totals[] = $row['total'];
-}
-
-// MONTHLY INCOME/EXPENSE
-$month_result = $conn->query("
-    SELECT month,
-        SUM(CASE WHEN type='income' THEN amount ELSE 0 END) AS income,
-        SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) AS expense
-    FROM transactions1
-    GROUP BY month
-    ORDER BY STR_TO_DATE(CONCAT('01-', month), '%d-%M-%Y')
-");
-
-$months = [];
-$monthly_income = [];
-$monthly_expense = [];
-while($row = $month_result->fetch_assoc()){
-    $months[] = $row['month'];
-    $monthly_income[] = $row['income'];
-    $monthly_expense[] = $row['expense'];
-}
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Analysis - Finance App</title>
+    <title>Financial Analysis - FinWise</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .analysis-container {
+            padding: 30px;
+            color: white;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .analysis-title {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .filter-btn {
+            padding: 10px 18px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: white;
+            color: #008080;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,0.4);
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.25);
+        }
+
+        .stat-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            margin-top: 10px;
+            font-weight: 700;
+        }
+
+        .section-title {
+            margin-top: 40px;
+            margin-bottom: 15px;
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .chart-box {
+            width: 100%;
+            height: 280px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.8);
+        }
+.top-nav {
+    width: 100%;
+    padding: 18px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.4);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    color: white;
+    font-weight: 700;
+}
+
+.wave {
+    font-size: 24px;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 35px;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links a {
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 18px;
+    transition: 0.2s;
+    padding-bottom: 5px;
+}
+
+.nav-links a:hover {
+    border-bottom: 2px solid white;
+}
+
+.logout-btn {
+    color: #ffdddd;
+    font-weight: 700;
+}
+
+
+    </style>
 </head>
+
 <body class="gradient">
 
-<div class="nav">
-    <a href="dashboard.php">Home</a>
-    <a href="transactions.php">Transactions</a>
-    <a href="analysis.php" class="active">Analysis</a>
-    <a href="logout.php">Logout</a>
+<?php include "nav.php"; ?>
+
+<div class="analysis-container">
+
+    <h1 class="analysis-title">Your Financial Analysis</h1>
+
+    
+    <div class="filter-tabs">
+        <button class="filter-btn active">Daily</button>
+        <button class="filter-btn">Weekly</button>
+        <button class="filter-btn">Monthly</button>
+        <button class="filter-btn">Yearly</button>
+    </div>
+
+   
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-title">Total Income</div>
+            <div class="stat-value">₱0.00</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Total Expenses</div>
+            <div class="stat-value">₱0.00</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Balance</div>
+            <div class="stat-value">₱0.00</div>
+        </div>
+    </div>
+
+    <div class="section-title">Expense Breakdown</div>
+    <div class="chart-box">Chart Placeholder</div>
+
 </div>
-
-<div class="container">
-    <h1>Financial Analysis</h1>
-
-    <!-- Summary -->
-    <div class="card">
-        <h2>Summary</h2>
-        <p>Total Income: <strong>₱<?= number_format($total_income, 2) ?></strong></p>
-        <p>Total Expense: <strong>₱<?= number_format($total_expense, 2) ?></strong></p>
-        <p>Balance: <strong>₱<?= number_format($balance, 2) ?></strong></p>
-    </div>
-
-    <!-- Expenses by Category -->
-    <div class="card">
-        <h2>Expenses by Category</h2>
-        <canvas id="categoryChart" style="width:100%; max-width:600px; height:300px;"></canvas>
-    </div>
-
-    <!-- Monthly Trend -->
-    <div class="card">
-        <h2>Monthly Income/Expense</h2>
-        <canvas id="monthlyChart" style="width:100%; max-width:700px; height:350px;"></canvas>
-    </div>
-</div>
-
-<script>
-    // Pie Chart: Expenses by Category
-    const ctxCategory = document.getElementById('categoryChart').getContext('2d');
-    new Chart(ctxCategory, {
-        type: 'pie',
-        data: {
-            labels: <?= json_encode($categories) ?>,
-            datasets: [{
-                label: 'Expenses by Category',
-                data: <?= json_encode($cat_totals) ?>,
-                backgroundColor: [
-                    '#e74c3c','#3498db','#2ecc71','#f1c40f','#9b59b6','#1abc9c'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'bottom' } }
-        }
-    });
-
-    // Bar Chart: Monthly Income vs Expense
-    const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
-    new Chart(ctxMonthly, {
-        type: 'bar',
-        data: {
-            labels: <?= json_encode($months) ?>,
-            datasets: [
-                {
-                    label: 'Income',
-                    data: <?= json_encode($monthly_income) ?>,
-                    backgroundColor: '#2ecc71'
-                },
-                {
-                    label: 'Expense',
-                    data: <?= json_encode($monthly_expense) ?>,
-                    backgroundColor: '#e74c3c'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'top' } },
-            scales: { y: { beginAtZero: true } }
-        }
-    });
-</script>
 
 </body>
 </html>
