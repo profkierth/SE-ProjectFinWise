@@ -7,7 +7,7 @@ body {
     color: #fff;
 }
 
-
+/* TOP BAR */
 .top-bar {
     display: flex;
     justify-content: space-between;
@@ -37,7 +37,7 @@ body {
     opacity: 0.8;
 }
 
-
+/* NAV LINKS */
 .nav-links a {
     margin: 0 15px;
     color: #fff;
@@ -54,7 +54,7 @@ body {
     font-size: 22px;
 }
 
-
+/* MAIN CONTENT */
 .main-content {
     width: 90%;
     margin: 20px auto 40px auto;
@@ -66,7 +66,7 @@ body {
     color: #fefefe;
 }
 
-
+/* SUMMARY CARDS */
 .summary-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -102,7 +102,7 @@ body {
 .expense { border-left: 6px solid #e74c3c; }
 .savings { border-left: 6px solid #3498db; }
 
-
+/* CHARTS SECTION */
 .charts-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
