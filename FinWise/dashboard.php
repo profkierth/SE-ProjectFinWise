@@ -62,6 +62,11 @@ if(!isset($_SESSION['user_id'])){
         </div>
     </div>
 
+    <div style="margin-top: 20px; text-align: center;">
+    <a href="transaction.php" class="btn-transaction">Go to Transactions</a>
+    </div>
+
+
 </div>
 
 <script>
