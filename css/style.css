@@ -610,6 +610,9 @@ body {
     cursor: pointer;
 }
 
+/* ========================= */
+/* CANCEL BUTTON */
+/* ========================= */
 .cancel-btn {
     background: #e74c3c;
     color: #ffffff;
@@ -619,4 +622,38 @@ body {
     border-radius: 12px;
     margin-top: 10px;
     cursor: pointer;
+}
+.tx-container{
+    width:90%;
+    margin:20px auto;
+}
+
+.tx-card{
+    display:grid;
+    grid-template-columns:60px 1fr auto;
+    gap:16px;
+    background:#fff;
+    padding:16px;
+    border-radius:16px;
+    margin-bottom:12px;
+    align-items:center;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+
+.tx-icon{
+    width:55px;height:55px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    color:#fff;
+}
+
+.tx-icon.income{background:#2ecc71}
+.tx-icon.expense{background:#e74c3c}
+
+.tx-delete{
+    color:#e74c3c;
+    font-size:20px;
 }
