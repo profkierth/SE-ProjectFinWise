@@ -1,6 +1,7 @@
 <?php
 session_start();
 require "db.php";
+
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -8,8 +9,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = trim($_POST['password']);
 
     if (!empty($email) && !empty($password)) {
-        
-        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+
+        $stmt = $conn->prepare(
+            "SELECT id, fullname, password, avatar FROM users WHERE email = ?"
+        );
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -17,27 +20,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
 
-            
             if (password_verify($password, $user['password'])) {
-                
-                $_SESSION['user'] = $user['id'];
+
+                $_SESSION['user_id'] = $user['id'];
                 $_SESSION['fullname'] = $user['fullname'];
                 $_SESSION['avatar'] = $user['avatar'];
 
-                
                 header("Location: dashboard.php");
                 exit;
-            } else {
-                $error = "Invalid email or password";
             }
-        } else {
-            $error = "Invalid email or password";
         }
+
+        $error = "Invalid email or password";
+
     } else {
         $error = "Please fill in all fields";
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html>
