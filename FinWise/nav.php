@@ -1,12 +1,19 @@
 <?php
-if (!isset($_SESSION)) {
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+$displayName = $_SESSION['fullname']
+    ?? $_SESSION['user']
+    ?? 'User';
 ?>
+
 <nav class="top-nav">
     <div class="nav-left">
         <span class="wave">👋</span>
-        <span class="welcome-text">WELCOME <?php echo strtoupper($_SESSION['user']); ?>!</span>
+        <span class="welcome-text">
+            WELCOME <?= htmlspecialchars(strtoupper($displayName)) ?>!
+        </span>
     </div>
 
     <ul class="nav-links">
