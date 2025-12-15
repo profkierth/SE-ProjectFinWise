@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit;
@@ -90,7 +91,7 @@ $savings = $balance > 0 ? $balance : 0;
 <title>Transactions</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+<link rel="stylesheet" href="style.css">
 <style>
 
 * {
@@ -103,7 +104,7 @@ $savings = $balance > 0 ? $balance : 0;
 body {
     min-height: 100vh;
     background: linear-gradient(135deg, #1abc9c, #16a085);
-    padding-bottom: 100px; 
+    padding-bottom: 100px; /* space for bottom nav */
 }
 
 
@@ -363,8 +364,11 @@ body {
 <body>
 
 
-<div class="notification">
-    <i class="fa-solid fa-bell"></i>
+<div class="top-header">
+    <a href="notification.php" class="notif-btn">
+        <i class="fa-solid fa-bell"></i>
+        <span class="notif-dot"></span>
+    </a>
 </div>
 
 <h2 class="page-title">Transactions</h2>
