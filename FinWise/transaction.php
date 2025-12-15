@@ -2,7 +2,7 @@
 session_start();
 require 'db.php';
 
-/* ================= AUTH ================= */
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit;
@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = (int) $_SESSION['user_id'];
 
-/* ================= ADD TRANSACTION ================= */
+
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
 
     $category_id = (int) $_POST['category_id'];
@@ -30,7 +30,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
     }
 }
 
-/* ================= TOTALS ================= */
 $stmt = $conn->prepare("
     SELECT 
         COALESCE(SUM(CASE WHEN c.type='income' THEN t.amount END),0) AS income,
@@ -48,7 +47,6 @@ $income  = $totals['income'];
 $expense = $totals['expense'];
 $balance = $income - $expense;
 
-/* ================= FETCH TRANSACTIONS ================= */
 $stmt = $conn->prepare("
     SELECT 
         t.id,
@@ -65,7 +63,7 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $transactions = $stmt->get_result();
 
-/* ================= FETCH CATEGORIES ================= */
+
 $stmt = $conn->prepare("
     SELECT id, name, type
     FROM categories
@@ -83,7 +81,7 @@ $categories = $stmt->get_result();
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-/* ===== GLOBAL ===== */
+
 body.gradient {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
@@ -140,7 +138,7 @@ body.gradient {
     font-weight: 600;
 }
 
-/* ===== ADD FORM ===== */
+
 .tx-top {
     display: flex;
     justify-content: center;
@@ -178,7 +176,7 @@ body.gradient {
     background: #00e0e0;
 }
 
-/* ===== TRANSACTIONS LIST ===== */
+
 .tx-container {
     max-width: 600px;
     margin: auto;
@@ -244,14 +242,14 @@ body.gradient {
 
 <h2 class="page-title">Transactions</h2>
 
-<!-- SUMMARY -->
+
 <div class="summary">
     <p>Income<br>₱<?= number_format($income,2) ?></p>
     <p>Expense<br>₱<?= number_format($expense,2) ?></p>
     <p><strong>Balance<br>₱<?= number_format($balance,2) ?></strong></p>
 </div>
 
-<!-- ADD TRANSACTION -->
+
 <div class="tx-top">
 <form method="POST" class="add-form">
     <select name="category_id" required>
@@ -271,7 +269,7 @@ body.gradient {
 </form>
 </div>
 
-<!-- TRANSACTIONS -->
+
 <div class="tx-container">
 
 <?php while($t = $transactions->fetch_assoc()): ?>
