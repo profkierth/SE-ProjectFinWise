@@ -657,3 +657,154 @@ body {
     color:#e74c3c;
     font-size:20px;
 }
+/* =============================== */
+/* NOTIFICATION PAGE FIX */
+/* =============================== */
+
+.gradient {
+    background: linear-gradient(180deg, #0fb9b1, #0a7f86);
+    min-height: 100vh;
+}
+
+/* PAGE TITLE FIX */
+.page-title {
+    text-align: center;
+    color: #ffffff;
+    font-size: 28px;
+    margin: 30px 0 25px 0;
+}
+
+/* NOTIFICATION CONTAINER */
+.notification-container {
+    width: 92%;
+    max-width: 700px;
+    margin: 0 auto 40px auto;
+}
+
+/* NOTIFICATION CARD */
+.notif-card {
+    background: #ffffff;
+    padding: 18px 20px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+    border-left: 6px solid #0abab5;
+    transition: 0.2s;
+}
+
+.notif-card:hover {
+    transform: translateY(-3px);
+}
+
+/* HEADER */
+.notif-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.notif-header i {
+    font-size: 20px;
+    color: #0abab5;
+}
+
+/* TEXT */
+.notif-card h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #005c71;
+}
+
+.notif-card p {
+    margin: 6px 0 8px 0;
+    color: #333;
+    font-size: 14px;
+}
+
+.notif-card span {
+    font-size: 12px;
+    color: #777;
+}
+/* =========================
+   TOP HEADER
+========================= */
+.top-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+}
+
+.top-header .page-title {
+    margin: 0;
+    font-size: 28px;
+    color: #fff;
+    font-weight: 700;
+}
+
+/* Notification */
+.notif-btn {
+    position: relative;
+    color: #fff;
+    font-size: 22px;
+    text-decoration: none;
+}
+
+.notif-dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    background: red;
+    border-radius: 50%;
+}
+
+/* =========================
+   BOTTOM NAVIGATION
+========================= */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    box-shadow: 0 -5px 20px rgba(0,0,0,.15);
+    z-index: 1000;
+}
+
+.bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    font-size: 12px;
+    color: #555;
+    transition: .3s;
+}
+
+.bottom-nav a i {
+    font-size: 18px;
+    margin-bottom: 3px;
+}
+
+.bottom-nav a:hover,
+.bottom-nav a.active {
+    color: #1abc9c;
+    transform: translateY(-3px);
+}
+
+/* Space for bottom nav */
+body {
+    padding-bottom: 90px;
+}
