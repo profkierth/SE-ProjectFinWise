@@ -12,7 +12,7 @@ if (!isset($_SESSION['csrf'])) {
 }
 
 
-/* ADD CATEGORY */
+
 if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['add'])) {
 
     if (!hash_equals($_SESSION['csrf'], $_POST['csrf'])) {
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['add'])) {
 }
 
 
-/* DELETE CATEGORY */
+
 if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['delete'])) {
 
     if (!hash_equals($_SESSION['csrf'], $_POST['csrf'])) {
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['delete'])) {
 }
 
 
-/* FETCH CATEGORIES */
+
 $stmt = $conn->prepare(
     "SELECT * FROM categories WHERE user_id=? ORDER BY type,name"
 );
@@ -71,14 +71,14 @@ $categories = $stmt->get_result();
 <div class="nav">
     <a href="dashboard.php">Home</a>
     <a href="transactions.php">Transactions</a>
-    <a href="category.php" class="active">Categories</a>
+    <a href="categories.php" class="active">Categories</a>
     <a href="profile.php">Profile</a>
     <a href="logout.php">Logout</a>
 </div>
 
 <h2 class="page-title">Categories</h2>
 
-<!-- ADD CATEGORY -->
+
 <div class="card" style="max-width:420px;margin-top:20px;">
 <h3>Add Category</h3>
 <form method="POST">
