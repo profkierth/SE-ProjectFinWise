@@ -1,481 +1,309 @@
 <?php
 session_start();
+require 'db.php';
 
-
+/* ================= AUTH ================= */
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit;
 }
 
-$categories = [
-    "salary" => ["name"=>"Salary","icon"=>"fa-money-bill-wave","color"=>"#3498db"],
-    "food" => ["name"=>"Food","icon"=>"fa-burger","color"=>"#e67e22"],
-    "transport" => ["name"=>"Transport","icon"=>"fa-bus","color"=>"#9b59b6"],
-    "bills" => ["name"=>"Bills","icon"=>"fa-file-invoice-dollar","color"=>"#34495e"],
-    "entertainment" => ["name"=>"Entertainment","icon"=>"fa-film","color"=>"#f39c12"],
-    "others" => ["name"=>"Others","icon"=>"fa-layer-group","color"=>"#7f8c8d"],
-];
+$user_id = (int) $_SESSION['user_id'];
 
-
-if (!isset($_SESSION['csrf'])) {
-    $_SESSION['csrf'] = bin2hex(random_bytes(32));
-}
-
-
-if (!isset($_SESSION['transactions'])) {
-    $_SESSION['transactions'] = [];
-}
-
-
+/* ================= ADD TRANSACTION ================= */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
 
-    if (!hash_equals($_SESSION['csrf'], $_POST['csrf'])) {
-        die("Invalid request");
-    }
+    $category_id = (int) $_POST['category_id'];
+    $amount = (float) $_POST['amount'];
 
-    $type = in_array($_POST['type'], ['income','expense']) ? $_POST['type'] : 'expense';
-    $label = trim($_POST['label']);
-    $amount = floatval($_POST['amount']);
-    $category = $_POST['category'];
+    if ($category_id > 0 && $amount > 0) {
+        $stmt = $conn->prepare("
+            INSERT INTO transactions (user_id, category_id, amount)
+            VALUES (?, ?, ?)
+        ");
+        $stmt->bind_param("iid", $user_id, $category_id, $amount);
+        $stmt->execute();
+        $stmt->close();
 
-    if ($amount <= 0 || empty($label)) {
-        die("Invalid input");
-    }
-
-    if (!isset($categories[$category])) {
-        $category = "others";
-    }
-
-    $_SESSION['transactions'][] = [
-        "type" => $type,
-        "label" => htmlspecialchars($label),
-        "amount" => $amount,
-        "category" => $category
-    ];
-}
-
-
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['delete'])) {
-
-    if (!hash_equals($_SESSION['csrf'], $_POST['csrf'])) {
-        die("Invalid request");
-    }
-
-    $index = intval($_POST['delete']);
-    if (isset($_SESSION['transactions'][$index])) {
-        unset($_SESSION['transactions'][$index]);
-        $_SESSION['transactions'] = array_values($_SESSION['transactions']);
+        header("Location: transactions.php");
+        exit;
     }
 }
 
-$totalIncome = 0;
-$totalExpense = 0;
+/* ================= TOTALS ================= */
+$stmt = $conn->prepare("
+    SELECT 
+        COALESCE(SUM(CASE WHEN c.type='income' THEN t.amount END),0) AS income,
+        COALESCE(SUM(CASE WHEN c.type='expense' THEN t.amount END),0) AS expense
+    FROM transactions t
+    JOIN categories c ON t.category_id = c.id
+    WHERE t.user_id = ?
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$totals = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
-foreach ($_SESSION['transactions'] as $t) {
-    if ($t['type'] === 'income') {
-        $totalIncome += $t['amount'];
-    } else {
-        $totalExpense += $t['amount'];
-    }
-}
+$income  = $totals['income'];
+$expense = $totals['expense'];
+$balance = $income - $expense;
 
-$balance = $totalIncome - $totalExpense;
-$savings = $balance > 0 ? $balance : 0;
+/* ================= FETCH TRANSACTIONS ================= */
+$stmt = $conn->prepare("
+    SELECT 
+        t.id,
+        t.amount,
+        t.created_at,
+        c.name AS category,
+        c.type
+    FROM transactions t
+    JOIN categories c ON t.category_id = c.id
+    WHERE t.user_id = ?
+    ORDER BY t.created_at DESC
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$transactions = $stmt->get_result();
 
-
+/* ================= FETCH CATEGORIES ================= */
+$stmt = $conn->prepare("
+    SELECT id, name, type
+    FROM categories
+    WHERE user_id = ?
+    ORDER BY type, name
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$categories = $stmt->get_result();
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <title>Transactions</title>
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="style.css">
+
 <style>
-
-* {
+/* ===== GLOBAL ===== */
+body.gradient {
     margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", sans-serif;
-}
-
-body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #008080, #003f3f);
     min-height: 100vh;
-    background: linear-gradient(135deg, #1abc9c, #16a085);
-    padding-bottom: 100px; /* space for bottom nav */
+    color: white;
 }
-
-
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #ffffff;
-    display: flex;
-    justify-content: space-around;
-    padding: 12px 0;
-    box-shadow: 0 -5px 20px rgba(0,0,0,.15);
-    z-index: 100;
-}
-
-.bottom-nav a {
-    text-decoration: none;
-    color: #555;
-    font-size: 13px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    transition: .3s;
-}
-
-.bottom-nav a i {
-    font-size: 18px;
-}
-
-.bottom-nav a.active,
-.bottom-nav a:hover {
-    color: #1abc9c;
-    transform: translateY(-3px);
-}
-
 
 .page-title {
     text-align: center;
-    color: #fff;
-    margin: 20px 0;
-    font-size: 26px;
+    margin: 25px 0;
+    font-size: 28px;
+}
+.bottom-nav { 
+    position: fixed; bottom: 0; left: 0; 
+    width: 100%; background: #ffffff; 
+    display: flex; 
+    justify-content: space-around; 
+    padding: 12px 0; 
+    box-shadow: 0 -5px 20px rgba(0,0,0,.15); 
+    z-index: 100; 
+} 
+.bottom-nav a { 
+    text-decoration: none; 
+    color: #555; 
+    font-size: 13px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 4px; 
+    transition: .3s; 
+}
+ .bottom-nav a i { 
+    font-size: 18px; 
+}
+.bottom-nav a.active,
+.bottom-nav a:hover { 
+    color: #1abc9c; 
+    transform: translateY(-3px); }
+
+.summary {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px auto;
+    max-width: 600px;
+    background: rgba(255,255,255,0.15);
+    padding: 15px;
+    border-radius: 15px;
+    backdrop-filter: blur(6px);
 }
 
-
-.main-content {
-    padding: 0 15px;
-    max-width: 900px;
-    margin: auto;
+.summary p {
+    margin: 0;
+    font-weight: 600;
 }
 
-.overview-title {
-    text-align: center;
-    color: #fff;
-    margin-bottom: 15px;
-}
-
-.summary-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-}
-
-@media (min-width: 700px) {
-    .summary-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-.summary-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 18px;
-    text-align: center;
-    box-shadow: 0 10px 25px rgba(0,0,0,.15);
-    animation: fadeUp .6s ease;
-}
-
-.summary-card h3 {
-    font-size: 14px;
-    color: #777;
-}
-
-.summary-card .amount {
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 6px;
-}
-
-.summary-card.balance .amount { color: #2980b9; }
-.summary-card.income  .amount { color: #2ecc71; }
-.summary-card.expense .amount { color: #e74c3c; }
-.summary-card.savings .amount { color: #16a085; }
-
-
+/* ===== ADD FORM ===== */
 .tx-top {
     display: flex;
     justify-content: center;
-    margin: 20px 0;
+    margin: 25px 0;
+}
+
+.add-form {
+    display: flex;
+    gap: 10px;
+    background: rgba(255,255,255,0.15);
+    padding: 15px;
+    border-radius: 15px;
+    backdrop-filter: blur(6px);
+}
+
+.add-form select,
+.add-form input {
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
 }
 
 .add-btn {
-    background: #ffffff;
-    color: #1abc9c;
+    background: #00c2c2;
     border: none;
-    padding: 12px 22px;
-    border-radius: 25px;
-    font-weight: bold;
+    color: #003f3f;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 700;
     cursor: pointer;
-    transition: .3s;
-    box-shadow: 0 8px 20px rgba(0,0,0,.2);
 }
 
 .add-btn:hover {
-    transform: scale(1.05);
+    background: #00e0e0;
 }
 
-
+/* ===== TRANSACTIONS LIST ===== */
 .tx-container {
-    padding: 0 15px;
-    max-width: 900px;
+    max-width: 600px;
     margin: auto;
+    padding-bottom: 50px;
 }
 
 .tx-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 15px;
-    margin-bottom: 12px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 15px;
+    padding: 15px 18px;
+    margin-bottom: 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 8px 20px rgba(0,0,0,.15);
-    animation: fadeUp .5s ease;
+    backdrop-filter: blur(6px);
+    transition: 0.2s;
+}
+
+.tx-card:hover {
+    transform: translateY(-3px);
+    background: rgba(255,255,255,0.25);
 }
 
 .tx-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
 }
 
 .tx-icon {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.tx-icon.income { background: #2ecc71; }
-.tx-icon.expense { background: #e74c3c; }
-
-.tx-left h4 {
-    font-size: 15px;
-    margin-bottom: 4px;
-}
-
-.tx-category {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #fff;
-    padding: 4px 10px;
-    border-radius: 12px;
-}
-
-
-.tx-delete {
-    background: transparent;
-    border: none;
-    color: #e74c3c;
     font-size: 18px;
-    cursor: pointer;
 }
 
-.tx-delete:hover {
-    transform: scale(1.2);
+.tx-icon.income {
+    background: #2ecc71;
+    color: #004d25;
 }
 
-
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
+.tx-icon.expense {
+    background: #e74c3c;
+    color: #4d0000;
 }
 
-.modal-box {
-    background: #fff;
-    padding: 20px;
-    border-radius: 18px;
-    width: 90%;
-    max-width: 350px;
-    animation: scaleIn .4s ease;
+.tx-card h4 {
+    margin: 0;
+    font-size: 16px;
 }
 
-.modal-box h3 {
-    text-align: center;
-    margin-bottom: 15px;
+.tx-card small {
+    opacity: 0.8;
 }
-
-.modal-box select,
-.modal-box input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 10px;
-    border: 1px solid #ddd;
-}
-
-
-.save-btn {
-    background: #1abc9c;
-    color: #fff;
-    width: 100%;
-    padding: 10px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-}
-
-.cancel-btn {
-    background: #ccc;
-    width: 100%;
-    padding: 10px;
-    border-radius: 12px;
-    border: none;
-    margin-top: 6px;
-    cursor: pointer;
-}
-
-
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scaleIn {
-    from { transform: scale(.8); opacity: 0; }
-    to   { transform: scale(1); opacity: 1; }
-}
-
 </style>
 </head>
 
-<body>
-
-
-<div class="top-header">
-    <a href="notification.php" class="notif-btn">
-        <i class="fa-solid fa-bell"></i>
-        <span class="notif-dot"></span>
-    </a>
-</div>
+<body class="gradient">
 
 <h2 class="page-title">Transactions</h2>
 
-<div class="main-content">
-
-    <h2 class="overview-title">Your Financial Overview</h2>
-
-    <div class="summary-grid">
-
-        <div class="summary-card balance">
-            <h3>Total Balance</h3>
-            <p class="amount">₱<?= number_format($balance, 2) ?></p>
-        </div>
-
-        <div class="summary-card income">
-            <h3>Total Income</h3>
-            <p class="amount">₱<?= number_format($totalIncome, 2) ?></p>
-        </div>
-
-        <div class="summary-card expense">
-            <h3>Total Expense</h3>
-            <p class="amount">₱<?= number_format($totalExpense, 2) ?></p>
-        </div>
-
-        <div class="summary-card savings">
-            <h3>Total Savings</h3>
-            <p class="amount">₱<?= number_format($savings, 2) ?></p>
-        </div>
-
-    </div>
+<!-- SUMMARY -->
+<div class="summary">
+    <p>Income<br>₱<?= number_format($income,2) ?></p>
+    <p>Expense<br>₱<?= number_format($expense,2) ?></p>
+    <p><strong>Balance<br>₱<?= number_format($balance,2) ?></strong></p>
 </div>
 
-
+<!-- ADD TRANSACTION -->
 <div class="tx-top">
-    <button class="add-btn" onclick="document.getElementById('addModal').style.display='flex'">
-        <i class="fa-solid fa-plus"></i> New Transaction
-    </button>
-</div>
-
-<div class="tx-container">
-<?php foreach($_SESSION['transactions'] as $i=>$t):
-    $cat = $categories[$t['category']] ?? $categories['others'];
-?>
-    <div class="tx-card">
-        <div class="tx-left">
-            <div class="tx-icon <?php echo $t['type']; ?>">
-                <?php echo $t['type']=="income"?"↑":"↓"; ?>
-            </div>
-            <div>
-                <h4><?php echo htmlspecialchars($t['label']); ?></h4>
-                <span class="tx-category" style="background:<?php echo $cat['color']; ?>">
-                    <i class="fa-solid <?php echo $cat['icon']; ?>"></i>
-                    <?php echo $cat['name']; ?>
-                </span>
-            </div>
-        </div>
-
-        <form method="POST">
-            <input type="hidden" name="delete" value="<?php echo $i; ?>">
-            <input type="hidden" name="csrf" value="<?php echo $_SESSION['csrf']; ?>">
-            <button class="tx-delete">
-                <i class="fa-solid fa-trash"></i>
-            </button>
-        </form>
-    </div>
-<?php endforeach; ?>
-</div>
-
-
-<div class="modal" id="addModal">
-<div class="modal-box">
-<h3>Add Transaction</h3>
-
-<form method="POST">
-    <select name="type" required>
-        <option value="income">Income</option>
-        <option value="expense">Expense</option>
+<form method="POST" class="add-form">
+    <select name="category_id" required>
+        <option value="">Select category</option>
+        <?php while($c = $categories->fetch_assoc()): ?>
+            <option value="<?= $c['id'] ?>">
+                <?= ucfirst($c['type']) ?> - <?= htmlspecialchars($c['name']) ?>
+            </option>
+        <?php endwhile; ?>
     </select>
 
-    <select name="category" required>
-        <?php foreach($categories as $key=>$cat): ?>
-            <option value="<?php echo $key; ?>"><?php echo $cat['name']; ?></option>
-        <?php endforeach; ?>
-    </select>
+    <input type="number" step="0.01" name="amount" placeholder="Amount" required>
 
-    <input type="text" name="label" placeholder="Label" required>
-    <input type="number" name="amount" placeholder="Amount" required>
-    <input type="hidden" name="csrf" value="<?php echo $_SESSION['csrf']; ?>">
-
-    <button type="submit" name="add" class="save-btn">Save</button>
-    <button type="button" class="cancel-btn"
-        onclick="document.getElementById('addModal').style.display='none'">
-        Cancel
+    <button type="submit" name="add" class="add-btn">
+        <i class="fa-solid fa-plus"></i>
     </button>
 </form>
 </div>
+
+<!-- TRANSACTIONS -->
+<div class="tx-container">
+
+<?php while($t = $transactions->fetch_assoc()): ?>
+<div class="tx-card">
+
+    <div class="tx-left">
+        <div class="tx-icon <?= $t['type'] ?>">
+            <?= $t['type'] === 'income' ? '↑' : '↓' ?>
+        </div>
+
+        <div>
+            <h4><?= htmlspecialchars($t['category']) ?></h4>
+            <small><?= date("M d, Y", strtotime($t['created_at'])) ?></small>
+        </div>
+    </div>
+
+    <strong>₱<?= number_format($t['amount'],2) ?></strong>
+
+</div>
+<?php endwhile; ?>
+
+<?php if($transactions->num_rows === 0): ?>
+<p style="text-align:center;">No transactions yet</p>
+<?php endif; ?>
+
 </div>
 
-
-<div class="bottom-nav">
-    <a href="dashboard.php"><i class="fa-solid fa-house"></i><span>Home</span></a>
-    <a href="transactions.php" class="active"><i class="fa-solid fa-wallet"></i><span>Transactions</span></a>
-    <a href="analysis.php"><i class="fa-solid fa-chart-pie"></i><span>Analysis</span></a>
-    <a href="categories.php"><i class="fa-solid fa-tags"></i><span>Categories</span></a>
-    <a href="profile.php"><i class="fa-solid fa-user"></i><span>Profile</span></a>
-</div>
-
+<div class="bottom-nav"> 
+    <a href="dashboard.php"><i class="fa-solid fa-house"></i><span>Home</span></a> 
+    <a href="transactions.php" class="active"><i class="fa-solid fa-wallet"></i><span>Transactions</span></a> 
+    <a href="analysis.php"><i class="fa-solid fa-chart-pie"></i><span>Analysis</span></a> 
+    <a href="categories.php"><i class="fa-solid fa-tags"></i><span>Categories</span></a> 
+    <a href="profile.php"><i class="fa-solid fa-user"></i><span>Profile</span></a> </div>
 </body>
 </html>
