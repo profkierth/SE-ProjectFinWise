@@ -34,6 +34,24 @@ $expense = $stmt->get_result()->fetch_assoc()['total'];
 $balance = $income - $expense;
 $savings = $balance > 0 ? $balance : 0;
 
+$recentStmt = $conn->prepare("
+    SELECT 
+        t.amount,
+        t.created_at,
+        c.name AS category,
+        c.icon,
+        LOWER(c.type) AS type
+    FROM transactions t
+    LEFT JOIN categories c ON t.category_id = c.id
+    WHERE t.user_id = ?
+    ORDER BY t.created_at DESC
+    LIMIT 5
+");
+
+$recentStmt->bind_param("i", $user_id);
+$recentStmt->execute();
+$recentTransactions = $recentStmt->get_result();
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -54,9 +72,7 @@ $savings = $balance > 0 ? $balance : 0;
             padding-bottom: 80px;
         }
 
-        /* =====================
-           TOP BAR
-        ====================== */
+
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -68,7 +84,7 @@ $savings = $balance > 0 ? $balance : 0;
             margin: 0;
         }
 
-        /* Notification */
+    
         .notification {
             position: fixed;
             top: 40px;
@@ -164,6 +180,91 @@ $savings = $balance > 0 ? $balance : 0;
             color: #fff;
             transform: translateY(-6px);
         }
+        
+.section-title {
+    margin: 30px 0 15px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+
+.recent-transactions {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 10px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.tx-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.tx-item:last-child {
+    border-bottom: none;
+}
+
+
+.tx-left {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: white;
+}
+
+
+.tx-item.income .tx-left {
+    background: #2ecc71;
+}
+
+.tx-item.expense .tx-left {
+    background: #e74c3c;
+}
+
+
+.tx-middle {
+    flex: 1;
+    margin-left: 12px;
+}
+
+.tx-middle strong {
+    display: block;
+    font-size: 15px;
+}
+
+.tx-middle small {
+    color: #777;
+    font-size: 12px;
+}
+
+
+.tx-right {
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.tx-item.income .tx-right {
+    color: #2ecc71;
+}
+
+.tx-item.expense .tx-right {
+    color: #e74c3c;
+}
+
+
+.empty-state {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+}
+
     </style>
 </head>
 
@@ -284,6 +385,36 @@ new Chart(document.getElementById("donutChart"), {
     }
 });
 </script>
+<h2 class="section-title">Recent Transactions</h2>
 
+<div class="recent-transactions">
+
+<?php if ($recentTransactions && $recentTransactions->num_rows > 0): ?>
+    <?php while ($tx = $recentTransactions->fetch_assoc()): ?>
+        <div class="tx-item <?= $tx['type'] === 'income' ? 'income' : 'expense' ?>">
+            <div class="tx-left">
+                <i class="fa-solid <?= htmlspecialchars($tx['icon'] ?? 'fa-circle') ?>"></i>
+            </div>
+
+            <div class="tx-middle">
+                <strong><?= htmlspecialchars($tx['category'] ?? 'Uncategorized') ?></strong>
+                <small><?= date("M d, Y h:i A", strtotime($tx['created_at'])) ?></small>
+            </div>
+
+            <div class="tx-right">
+                <?= $tx['type'] === 'income' ? '+' : '-' ?>
+                ₱<?= number_format($tx['amount'], 2) ?>
+            </div>
+        </div>
+    <?php endwhile; ?>
+<?php else: ?>
+    <p class="empty-state">No transactions yet</p>
+<?php endif; ?>
+
+</div>
+
+
+
+</div>
 </body>
 </html>
