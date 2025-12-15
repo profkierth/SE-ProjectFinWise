@@ -40,9 +40,9 @@ $savings = $balance > 0 ? $balance : 0;
 <head>
     <title>Dashboard - FinWise</title>
 
-   
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+    <link rel="stylesheet" href="style.css">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -54,7 +54,9 @@ $savings = $balance > 0 ? $balance : 0;
             padding-bottom: 80px;
         }
 
-        
+        /* =====================
+           TOP BAR
+        ====================== */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -66,7 +68,7 @@ $savings = $balance > 0 ? $balance : 0;
             margin: 0;
         }
 
-       
+        /* Notification */
         .notification {
             position: fixed;
             top: 40px;
@@ -168,8 +170,11 @@ $savings = $balance > 0 ? $balance : 0;
 <body>
 
 
-<div class="notification">
-    <i class="fa-solid fa-bell"></i>
+<div class="top-header">
+    <a href="notification.php" class="notif-btn">
+        <i class="fa-solid fa-bell"></i>
+        <span class="notif-dot"></span>
+    </a>
 </div>
 
 <header class="top-bar">
@@ -216,7 +221,7 @@ $savings = $balance > 0 ? $balance : 0;
 
 </div>
 
-<!-- Bottom Navigation -->
+
 <div class="bottom-nav">
     <a href="dashboard.php" class="active">
         <i class="fa-solid fa-house"></i>
