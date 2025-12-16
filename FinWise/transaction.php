@@ -17,17 +17,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
     $amount = (float) $_POST['amount'];
 
     $check = $conn->prepare("SELECT id FROM balances WHERE user_id = ?");
-$check->bind_param("i", $user_id);
-$check->execute();
-$exists = $check->get_result()->fetch_assoc();
-$check->close();
+    $check->bind_param("i", $user_id);
+    $check->execute();
+    $exists = $check->get_result()->fetch_assoc();
+    $check->close();
 
-if (!$exists) {
-    $stmt = $conn->prepare("INSERT INTO balances (user_id, amount) VALUES (?, 0)");
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $stmt->close();
-}
+    if (!$exists) {
+        $stmt = $conn->prepare("INSERT INTO balances (user_id, amount) VALUES (?, 0)");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $stmt->close();
+    }
 
 
     if ($category_id > 0 && $amount > 0) {
