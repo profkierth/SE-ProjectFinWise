@@ -1,3 +1,4 @@
+
 CREATE DATABASE finance_app;
 USE finance_app;
 
@@ -69,3 +70,13 @@ select * from users;
 select * from transactions;
 select * from categories;
 select * from notifications;
+
+CREATE TABLE balances (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    source VARCHAR(50),
+    category VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
