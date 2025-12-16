@@ -7,7 +7,7 @@ body{
 
 /* gradient used on main pages */
 body.gradient{
-    background:linear-gradient(180deg,#0abab5,#e6fbf6);
+    background-image: url(finwise.jpg);
     min-height:100vh;
 }
 
@@ -179,32 +179,66 @@ canvas {
 
 
 /* Forms with icons */
-.input-icon{
-    position:relative;
-    width:90%;
-    margin:10px auto;
-}
-.input-icon i{
-    position:absolute;
-    top:50%;
-    left:12px;
-    transform:translateY(-50%);
-    color:#0abab5;
-    font-size:16px;
-}
-.input-icon input, .input-icon select, .input-icon input[type=file]{
-    width:100%;
-    padding:12px 12px 12px 40px;
-    border-radius:10px;
-    border:1px solid #ccc;
+/* ===== INPUT CONTAINER ===== */
+.input-icon {
+    position: relative;
+    width: 90%;
+    margin: 10px auto;
+    box-sizing: border-box; /* prevent overflow */
 }
 
-/* Prevent overflowing inputs */
-.input-icon,
-.input-icon input,
-.input-icon select {
-    box-sizing: border-box;
+/* ===== ICON INSIDE INPUT ===== */
+.input-icon i {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: #0abab5;
+    font-size: 16px;
+    pointer-events: none; /* so icon doesn't block clicking input */
 }
+
+/* ===== INPUTS, SELECTS, FILE ===== */
+.input-icon input,
+.input-icon select,
+.input-icon input[type="file"] {
+    width: 100%;
+    padding: 12px 12px 12px 40px; /* leave space for icon */
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+    background-color: #fff;
+    color: #333;
+}
+
+/* ===== FOCUS STYLE ===== */
+.input-icon input:focus,
+.input-icon select:focus,
+.input-icon input[type="file"]:focus {
+    border-color: #0abab5;
+    box-shadow: 0 0 5px rgba(10, 186, 181, 0.5);
+}
+
+/* ===== FILE INPUT SPECIFIC ===== */
+.input-icon input[type="file"] {
+    padding-left: 12px; /* file inputs don't need icon space */
+}
+
+/* ===== PLACEHOLDER COLOR ===== */
+.input-icon input::placeholder,
+.input-icon select {
+    color: #999;
+}
+
+/* ===== RESPONSIVE ===== */
+@media screen and (max-width: 500px) {
+    .input-icon {
+        width: 95%;
+    }
+}
+
 
 .label{
     font-size:13px;
@@ -705,8 +739,8 @@ body {
 }
 
 .notif-header i {
-    font-size: 20px;
-    color: #0abab5;
+    font-size: 30px;
+    color: #f4f4f4;
 }
 
 /* TEXT */
@@ -730,7 +764,7 @@ body {
    TOP HEADER
 ========================= */
 .top-header {
-    position: sticky;
+    position: relative;
     top: 0;
     z-index: 1000;
     padding: 16px 20px;
@@ -745,14 +779,13 @@ body {
 .top-header .page-title {
     margin: 0;
     font-size: 28px;
-    color: #fff;
+    color: #0af4f8;
     font-weight: 700;
 }
 
-/* Notification */
 .notif-btn {
     position: relative;
-    color: #fff;
+    color: #0af4f8;
     font-size: 22px;
     text-decoration: none;
 }
@@ -766,6 +799,92 @@ body {
     background: red;
     border-radius: 50%;
 }
+/* =========================
+   NOTIFICATIONS HEADER
+========================= */
+.notif-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: sticky;
+    top: 0;
+    padding: 18px 20px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    z-index: 1000;
+}
+
+.notif-header h2 {
+    color: white;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Back Button */
+.back-btn {
+    position: absolute;
+    left: 20px;
+    font-size: 22px;
+    color: rgb(255, 255, 255);
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    transform: translateX(-4px);
+}
+
+/* =========================
+   NOTIFICATION LIST
+========================= */
+.notification-container {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 0 15px;
+}
+
+.notif-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.notif-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.notif-title i {
+    font-size: 22px;
+    color: #008080;
+}
+
+.notif-title h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.notif-card p {
+    margin: 5px 0 8px;
+    color: #444;
+}
+
+.notif-time {
+    font-size: 13px;
+    color: #777;
+}
+
+/* Empty text */
+.empty-text {
+    text-align: center;
+    color: #eee;
+    margin-top: 40px;
+}
+
 
 /* =========================
    BOTTOM NAVIGATION
