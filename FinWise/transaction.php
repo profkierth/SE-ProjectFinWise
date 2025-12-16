@@ -17,6 +17,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
     $amount = (float) $_POST['amount'];
 
     if ($category_id > 0 && $amount > 0) {
+
+        
+        $cat = $conn->prepare("
+            SELECT name, type 
+            FROM categories 
+            WHERE id = ? AND user_id = ?
+        ");
+        $cat->bind_param("ii", $category_id, $user_id);
+        $cat->execute();
+        $category = $cat->get_result()->fetch_assoc();
+        $cat->close();
+
+        if (!$category) {
+            header("Location: transactions.php");
+            exit;
+        }
+
+        
         $stmt = $conn->prepare("
             INSERT INTO transactions (user_id, category_id, amount)
             VALUES (?, ?, ?)
@@ -24,6 +42,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
         $stmt->bind_param("iid", $user_id, $category_id, $amount);
         $stmt->execute();
         $stmt->close();
+
+        $type  = $category['type']; 
+        $title = ucfirst($type) . " Added";
+
+        $message = ($type === 'income')
+            ? "You added income of ₱" . number_format($amount, 2) . " under " . $category['name']
+            : "You added expense of ₱" . number_format($amount, 2) . " for " . $category['name'];
+
+        $notif = $conn->prepare("
+            INSERT INTO notifications (user_id, type, title, message)
+            VALUES (?, ?, ?, ?)
+        ");
+        $notif->bind_param("isss", $user_id, $type, $title, $message);
+        $notif->execute();
+        $notif->close();
 
         header("Location: transactions.php");
         exit;
@@ -46,6 +79,7 @@ $stmt->close();
 $income  = $totals['income'];
 $expense = $totals['expense'];
 $balance = $income - $expense;
+
 
 $stmt = $conn->prepare("
     SELECT 
@@ -248,7 +282,6 @@ body.gradient {
     <p>Expense<br>₱<?= number_format($expense,2) ?></p>
     <p><strong>Balance<br>₱<?= number_format($balance,2) ?></strong></p>
 </div>
-
 
 <div class="tx-top">
 <form method="POST" class="add-form">
