@@ -60,54 +60,84 @@ $recentTransactions = $recentStmt->get_result();
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f4f6f8;
-            padding-bottom: 80px;
-        }
+        
+    body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+       background: linear-gradient(135deg, #008080, #003f3f);
+        padding-bottom: 80px;
+    }
 
+   
+    .top-header {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        padding: 15px 30px;
+        z-index: 1100;
+        pointer-events: none; 
+    }
 
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-        }
+    .notif-btn {
+        position: relative;
+        font-size: 28px;
+        color: #10b3ad;
+        pointer-events: all; 
+        cursor: pointer;
+    }
 
-        .profile-text h2 {
-            margin: 0;
-        }
+    .notif-dot {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 10px;
+        height: 10px;
+        background: red;
+        border-radius: 50%;
+        border: 2px solid #fff;
+    }
+
+    @keyframes bellPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+    }
+
+    .notif-btn i {
+        animation: bellPulse 2s infinite;
+    }
 
     
-        .notification {
-            position: fixed;
-            top: 40px;
-            right: 40px;
-            font-size: 30px;
-            color: #10b3ad;
-            z-index: 1100;
-        }
+    .top-bar {
+        padding: 30px 20px 20px; 
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
 
-        @keyframes bellPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
-        }
+    .top-bar h2 {
+        font-size: 26px;
+        margin: 0;
+        color: #fbfbfbff;
+    }
 
-        .notification i {
-            animation: bellPulse 2s infinite;
-        }
-
-        
-        .main-content {
-            padding: 20px;
-        }
+    .top-bar small {
+        font-size: 14px;
+        color: #555;
+       color: #fbfbfbff;
+    }
+    
+    .main-content {
+        padding: 20px;
+        margin-top: 20px;
+    }
 
         .summary-grid {
             display: grid;
@@ -146,7 +176,7 @@ $recentTransactions = $recentStmt->get_result();
             left: 0;
             width: 100%;
             height: 70px;
-            background: #10b3ad;
+            background: #f5f5f5ff;
 
             display: flex;
             justify-content: space-around;
@@ -155,7 +185,7 @@ $recentTransactions = $recentStmt->get_result();
         }
 
         .bottom-nav a {
-            color: #eafafa;
+            color: #555;
             text-decoration: none;
             font-size: 11px;
 
@@ -177,7 +207,7 @@ $recentTransactions = $recentStmt->get_result();
         }
 
         .bottom-nav a.active {
-            color: #fff;
+            color: #555;
             transform: translateY(-6px);
         }
         
@@ -185,6 +215,7 @@ $recentTransactions = $recentStmt->get_result();
     margin: 30px 0 15px;
     font-size: 20px;
     font-weight: 700;
+    color: #fbfbfbff;
 }
 
 
@@ -237,6 +268,7 @@ $recentTransactions = $recentStmt->get_result();
 .tx-middle strong {
     display: block;
     font-size: 15px;
+    color: #fbfbfbff;
 }
 
 .tx-middle small {
@@ -279,10 +311,8 @@ $recentTransactions = $recentStmt->get_result();
 </div>
 
 <header class="top-bar">
-    <div class="left-profile">
-        <h2>WELCOME <?= strtoupper($_SESSION['fullname'] ?? $_SESSION['user']) ?> 👋</h2>
-        <small>Good to see you again</small>
-    </div>
+    <h2>Welcome, <strong><?= htmlspecialchars($_SESSION['fullname'] ?? 'User') ?></strong> 👋</h2>
+    <small>It's great to see you again!</small>
 </header>
 
 <div class="main-content">
