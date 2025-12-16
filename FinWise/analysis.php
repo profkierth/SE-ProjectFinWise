@@ -21,10 +21,21 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $totals = $stmt->get_result()->fetch_assoc();
 
+$stmt = $conn->prepare("
+    SELECT IFNULL(SUM(amount),0) AS total
+    FROM balances
+    WHERE user_id = ?
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$balance = $stmt->get_result()->fetch_assoc()['total'];
+$stmt->close();
+
+$savings = $balance > 0 ? $balance : 0;
+
 $income  = $totals['income'] ?? 0;
 $expense = $totals['expense'] ?? 0;
-$balance = $income - $expense;
-$savings = $balance > 0 ? $balance : 0;
+
 
 
 
