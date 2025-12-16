@@ -31,12 +31,16 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $expense = $stmt->get_result()->fetch_assoc()['total'];
 
-$stmt = $conn->prepare("SELECT IFNULL(SUM(amount),0) total FROM balances WHERE user_id = ?");
+$stmt = $conn->prepare("
+    SELECT IFNULL(SUM(amount),0) AS total
+    FROM balances
+    WHERE user_id = ?
+");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
-$manualBalance = $stmt->get_result()->fetch_assoc()['total'];
+$balance = $stmt->get_result()->fetch_assoc()['total'];
+$stmt->close();
 
-$balance = $income - $expense;
 $savings = $balance > 0 ? $balance : 0;
 
 $recentStmt = $conn->prepare("
