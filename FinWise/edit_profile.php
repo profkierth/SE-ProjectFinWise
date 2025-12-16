@@ -1,45 +1,96 @@
 <?php
 session_start();
-if(!isset($_SESSION['user'])){ 
-    header('Location:index.php'); 
-    exit; 
+require 'db.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location:index.php');
+    exit;
 }
 
+$user_id = $_SESSION['user_id'];
 $success = '';
-$error = '';
+$error   = '';
 
-if($_SERVER['REQUEST_METHOD'] == 'POST'){
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Avatar upload
-    if(isset($_FILES['avatar']) && $_FILES['avatar']['error'] == 0){
-        $allowed = ['image/png','image/jpeg','image/jpg','image/gif'];
+    $fullname  = trim($_POST['fullname']);
+    $birthdate = $_POST['birthdate'];
+    $gender    = $_POST['gender'];
+    $address   = trim($_POST['address']);
+    $email     = trim($_POST['email']);
 
-        if(in_array($_FILES['avatar']['type'], $allowed)){
-            $ext = pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION);
-            $newName = 'uploads/'.uniqid('avatar_').".".$ext;
+   
+    $avatarPath = $_SESSION['avatar'] ?? null;
 
-            if(move_uploaded_file($_FILES['avatar']['tmp_name'], $newName)){
-                $_SESSION['avatar'] = $newName;
-            } else {
-                $error = "Failed to upload image.";
-            }
+    if (!empty($_FILES['avatar']['name'])) {
+
+        if ($_FILES['avatar']['error'] !== 0) {
+            $error = "Upload error.";
+        } elseif ($_FILES['avatar']['size'] > 2 * 1024 * 1024) {
+            $error = "Avatar must be under 2MB.";
         } else {
-            $error = "Only PNG, JPG, JPEG, GIF allowed.";
+
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime  = finfo_file($finfo, $_FILES['avatar']['tmp_name']);
+            finfo_close($finfo);
+
+            $allowed = ['image/png','image/jpeg','image/gif'];
+
+            if (!in_array($mime, $allowed)) {
+                $error = "Only PNG, JPG, JPEG, GIF allowed.";
+            } else {
+
+                if (!is_dir('uploads')) {
+                    mkdir('uploads', 0755, true);
+                }
+
+                $ext = pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION);
+                $avatarPath = 'uploads/avatar_' . $user_id . '_' . time() . '.' . $ext;
+
+                if (!move_uploaded_file($_FILES['avatar']['tmp_name'], $avatarPath)) {
+                    $error = "Failed to upload image.";
+                }
+            }
         }
     }
 
-    // Save fields
-    $_SESSION['fullname'] = trim($_POST['fullname']);
-    $_SESSION['birthdate'] = $_POST['birthdate'];
-    $_SESSION['gender'] = $_POST['gender'];
-    $_SESSION['address'] = trim($_POST['address']);
-    $_SESSION['user'] = trim($_POST['email']);
+    if (!$error) {
 
-    if(!$error){
-        $success = "Profile updated.";
+        $stmt = $conn->prepare("
+            UPDATE users 
+            SET fullname = ?, birthdate = ?, gender = ?, address = ?, email = ?, avatar = ?
+            WHERE id = ?
+        ");
+        $stmt->bind_param(
+            "ssssssi",
+            $fullname,
+            $birthdate,
+            $gender,
+            $address,
+            $email,
+            $avatarPath,
+            $user_id
+        );
+
+        if ($stmt->execute()) {
+
+            $_SESSION['fullname']  = $fullname;
+            $_SESSION['birthdate'] = $birthdate;
+            $_SESSION['gender']    = $gender;
+            $_SESSION['address']   = $address;
+            $_SESSION['user']      = $email;
+            $_SESSION['avatar']    = $avatarPath;
+
+            $success = "Profile updated successfully.";
+        } else {
+            $error = "Failed to update profile.";
+        }
+
+        $stmt->close();
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
