@@ -31,6 +31,11 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $expense = $stmt->get_result()->fetch_assoc()['total'];
 
+$stmt = $conn->prepare("SELECT IFNULL(SUM(amount),0) total FROM balances WHERE user_id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$manualBalance = $stmt->get_result()->fetch_assoc()['total'];
+
 $balance = $income - $expense;
 $savings = $balance > 0 ? $balance : 0;
 
@@ -149,8 +154,26 @@ $recentTransactions = $recentStmt->get_result();
             background: #fff;
             border-radius: 12px;
             padding: 15px;
+            position: relative;
         }
-
+    .add-balance-btn{
+        position:absolute;
+        top:12px;
+        right:12px;
+        background:#10b3ad;
+        color:#fff;
+        border:none;
+        border-radius:50%;
+        width:32px;
+        height:32px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        cursor:pointer
+    }
+    .add-balance-btn:hover{
+        background:#0e9c97
+    }
         .amount {
             font-size: 20px;
             font-weight: bold;
@@ -321,6 +344,9 @@ $recentTransactions = $recentStmt->get_result();
 
     <div class="summary-grid">
         <div class="summary-card">
+                <a href="add_balance.php" class="add-balance-btn" title="Add Balance">
+                    <i class="fa-solid fa-plus"></i>
+                </a>
             <h3>Total Balance</h3>
             <p class="amount">₱<?= number_format($balance,2) ?></p>
         </div>
