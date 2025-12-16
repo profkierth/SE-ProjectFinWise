@@ -9,7 +9,6 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-
 $stmt = $conn->prepare("
     SELECT 
         SUM(CASE WHEN c.type='income' THEN t.amount ELSE 0 END) AS income,
@@ -217,7 +216,7 @@ function loadChart(type, btn){
     let labels = dataSets[type].map(d => d.label);
     let values = dataSets[type].map(d => Number(d.total));
 
-  
+    // fallback if no data
     if(labels.length === 0){
         labels = ["No data"];
         values = [0];
@@ -252,7 +251,6 @@ function loadChart(type, btn){
         }
     });
 }
-
 
 document.querySelectorAll(".tabs button").forEach(btn => {
     btn.addEventListener("click", () => {
