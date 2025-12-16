@@ -28,16 +28,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>Add Balance - FinWise</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-body{font-family:Arial;background:linear-gradient(135deg,#008080,#003f3f);padding:40px;color:#fff}
-.form-card{background:#fff;color:#333;border-radius:14px;padding:25px;max-width:400px;margin:auto}
-.form-card h2{text-align:center;margin-bottom:20px}
-.form-group{margin-bottom:15px}
-.form-group label{display:block;margin-bottom:6px;font-weight:bold}
-.form-group input,.form-group select{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc}
-.submit-btn{width:100%;padding:12px;border:none;border-radius:10px;background:#10b3ad;color:#fff;font-size:16px;cursor:pointer}
-.submit-btn:hover{background:#0e9c97}
-.back-link{text-align:center;margin-top:15px}
-.back-link a{color:#10b3ad;text-decoration:none}
+body{
+    font-family:Arial;
+    background:linear-gradient(135deg,#008080,#003f3f);
+    padding:40px;
+    color:#fff
+}
+.form-card{
+    background:#fff;
+    color:#333;
+    border-radius:14px;
+    padding:25px;
+    max-width:400px;
+    margin:auto
+}
+.form-card h2{
+    text-align:center;
+    margin-bottom:20px
+}
+.form-group{
+    margin-bottom:15px
+}
+.form-group label{
+    display:block;
+    margin-bottom:6px;
+    font-weight:bold
+}
+.form-group input,.form-group select{
+    width:100%
+    ;padding:10px;
+    border-radius:8px;
+    border:1px solid #ccc
+}
+.submit-btn{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#10b3ad;
+    color:#fff;
+    font-size:16px;
+    cursor:pointer
+}
+.submit-btn:hover{
+    background:#0e9c97
+}
+.back-link{
+    text-align:center;
+    margin-top:15px
+}
+.back-link a{
+    color:#10b3ad;
+    text-decoration:none
+}
 </style>
 </head>
 <body>
