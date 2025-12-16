@@ -43,31 +43,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
         $stmt->execute();
         $stmt->close();
 
-        // ================= UPDATE BALANCE =================
-        if ($category['type'] === 'expense') {
-
-            // Deduct expense from balance
-            $bal = $conn->prepare("
-                UPDATE balances 
-                SET amount = amount - ? 
-                WHERE user_id = ?
-            ");
-            $bal->bind_param("di", $amount, $user_id);
-            $bal->execute();
-            $bal->close();
-
-        } elseif ($category['type'] === 'income') {
-
-            // Add income to balance
-            $bal = $conn->prepare("
-                UPDATE balances 
-                SET amount = amount + ? 
-                WHERE user_id = ?
-            ");
-            $bal->bind_param("di", $amount, $user_id);
-            $bal->execute();
-            $bal->close();
+        if ($category['type'] === 'income') {
+        $bal = $conn->prepare("UPDATE balances SET amount = amount + ? WHERE user_id = ?");
+        $bal->bind_param("di", $amount, $user_id);
+        $bal->execute();
+        $bal->close();
+        } elseif ($category['type'] === 'expense') {
+        $bal = $conn->prepare("UPDATE balances SET amount = amount - ? WHERE user_id = ?");
+        $bal->bind_param("di", $amount, $user_id);
+        $bal->execute();
+        $bal->close();
         }
+
 
 
 
