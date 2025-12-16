@@ -43,6 +43,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
         $stmt->execute();
         $stmt->close();
 
+        // ================= UPDATE BALANCE =================
+        if ($category['type'] === 'expense') {
+
+        // Deduct expense from balance
+        $bal = $conn->prepare("
+            UPDATE balances 
+            SET amount = amount - ? 
+            WHERE user_id = ?
+        ");
+        $bal->bind_param("di", $amount, $user_id);
+        $bal->execute();
+        $bal->close();
+    }
+
+
         $type  = $category['type']; 
         $title = ucfirst($type) . " Added";
 
@@ -78,7 +93,16 @@ $stmt->close();
 
 $income  = $totals['income'];
 $expense = $totals['expense'];
-$balance = $income - $expense;
+
+$stmt = $conn->prepare("
+    SELECT IFNULL(SUM(amount),0) AS total
+    FROM balances
+    WHERE user_id = ?
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$balance = $stmt->get_result()->fetch_assoc()['total'];
+$stmt->close();
 
 
 $stmt = $conn->prepare("
