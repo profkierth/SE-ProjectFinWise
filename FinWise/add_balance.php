@@ -14,9 +14,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $source = $_POST['source'];
     $category = $_POST['category'];
 
-    $stmt = $conn->prepare("INSERT INTO balances (user_id, amount, source, category) VALUES (?,?,?,?)");
-    $stmt->bind_param("idss", $user_id, $amount, $source, $category);
+    // Check if user already has a balance row
+    $check = $conn->prepare("SELECT id FROM balances WHERE user_id = ?");
+    $check->bind_param("i", $user_id);
+    $check->execute();
+    $exists = $check->get_result()->fetch_assoc();
+    $check->close();
+
+    if ($exists) {
+        // Update existing balance
+        $stmt = $conn->prepare("
+            UPDATE balances 
+            SET amount = amount + ?, source = ?, category = ?
+            WHERE user_id = ?
+        ");
+        $stmt->bind_param("dssi", $amount, $source, $category, $user_id);
+    } else {
+        // First-time balance
+        $stmt = $conn->prepare("
+            INSERT INTO balances (user_id, amount, source, category)
+            VALUES (?,?,?,?)
+        ");
+        $stmt->bind_param("idss", $user_id, $amount, $source, $category);
+    }
+
     $stmt->execute();
+    $stmt->close();
+
 
     header('Location: dashboard.php');
     exit;
